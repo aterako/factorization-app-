@@ -23,9 +23,12 @@
     width: 100%;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     text-align: center;
-    z-index: 1;
+    z-index: 10; /* 広告より前面に表示 */
   }
-  h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
   button {
     margin: 0.5rem;
     padding: 0.8rem 1.2rem;
@@ -41,26 +44,26 @@
   .factors button { font-size: 1.5rem; padding: 0.8rem 1.2rem; }
   .inputFactors { font-size: 1.5rem; margin: 1rem 0; min-height: 2rem; }
   .correct { font-weight: bold; font-size: 1.5rem; color: green; margin: 1rem 0; }
+
   #timeScore { margin: 1rem 0; font-size: 1.2rem; font-weight: bold; }
 
-  /* AdSense 用スペース */
+  /* 上下広告 */
   .adsense { margin: 20px 0; text-align: center; }
 
-  /* 左右広告はデフォルト非表示（スマホ） */
-  .ads-left, .ads-right { display: none; }
+  /* 左右広告 */
+  .adsense-side {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    display: none; /* 初期非表示 */
+  }
+  .adsense-side.left { left: 0; }
+  .adsense-side.right { right: 0; }
 
-  @media screen and (min-width: 768px) {
-    /* PC版左右広告 */
-    .ads-left, .ads-right {
-      display: block;
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 120px; /* 広告幅 */
-      z-index: 2;
-    }
-    .ads-left { left: 0; }
-    .ads-right { right: 0; }
+  /* PCサイズで左右広告を表示 */
+  @media screen and (min-width: 1024px) {
+    .adsense-side { display: block; }
   }
 
   @media screen and (max-width: 767px) {
@@ -71,36 +74,35 @@
   }
 </style>
 
-<!-- AdSense 読み込み -->
+<!-- AdSense ライブラリ -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4032369016517729"
      crossorigin="anonymous"></script>
+
+<!-- 左右広告ユニット -->
+<div class="adsense-side left">
+  <ins class="adsbygoogle"
+       style="display:block;width:120px;height:600px"
+       data-ad-client="ca-pub-4032369016517729"
+       data-ad-slot="XXXXXXX"></ins>
+</div>
+<div class="adsense-side right">
+  <ins class="adsbygoogle"
+       style="display:block;width:120px;height:600px"
+       data-ad-client="ca-pub-4032369016517729"
+       data-ad-slot="YYYYYYY"></ins>
+</div>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
 </head>
 <body>
-
-<!-- 左広告（PCのみ） -->
-<div class="adsense ads-left">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-4032369016517729"
-       data-ad-slot="5683767599"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-</div>
-
-<!-- 右広告（PCのみ） -->
-<div class="adsense ads-right">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-4032369016517729"
-       data-ad-slot="5683767599"
-       data-ad-format="auto"
-       data-full-width-responsive="true"></ins>
-</div>
 
 <div id="gameContainer">
 
   <!-- 上広告 -->
-  <div class="adsense ads-top">
+  <div class="adsense">
     <ins class="adsbygoogle"
          style="display:block"
          data-ad-client="ca-pub-4032369016517729"
@@ -137,7 +139,7 @@
   <div class="correct" id="correctMsg"></div>
 
   <!-- 下広告 -->
-  <div class="adsense ads-bottom">
+  <div class="adsense">
     <ins class="adsbygoogle"
          style="display:block"
          data-ad-client="ca-pub-4032369016517729"
@@ -251,7 +253,7 @@ checkBtn.addEventListener('click', () => {
 });
 
 undoBtn.addEventListener('click', () => { inputFactors.pop(); updateInputFactors(); });
-</script>
 
+</script>
 </body>
 </html>
