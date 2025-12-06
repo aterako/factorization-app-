@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Prime Factorization Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  #gameContainer {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 20px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    margin: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.5rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover { opacity: 0.9; }
+
+  .target { font-size: 4rem; margin: 2rem 0; font-weight: bold; }
+  .factors button { font-size: 1.5rem; padding: 0.8rem 1.2rem; }
+  .inputFactors { font-size: 1.5rem; margin: 1rem 0; min-height: 2rem; }
+  .correct { font-weight: bold; font-size: 1.5rem; color: green; margin: 1rem 0; }
+
+  #timeScore { margin: 1rem 0; font-size: 1.2rem; font-weight: bold; }
+
+  /* AdSense 用スペース */
+  .adsense { margin: 20px 0; text-align: center; }
+
+  @media screen and (max-width: 767px) {
+    h1 { font-size: 2rem; }
+    .target { font-size: 3rem; }
+    button { font-size: 1.2rem; padding: 0.6rem 1rem; }
+    .inputFactors { font-size: 1.2rem; }
+  }
+</style>
+
+<!-- AdSense 読み込み -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4032369016517729"
+     crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+<div id="gameContainer">
+
+  <!-- 上広告 -->
+  <div class="adsense">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-4032369016517729"
+         data-ad-slot="5683767599"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+  <h1>Prime Factorization Game</h1>
+
+  <div>
+    モード:
+    <select id="modeSelect">
+      <option value="normal">Normal</option>
+      <option value="hard">Hard</option>
+      <option value="expert">Expert</option>
+    </select>
+    <button id="startBtn" style="background-color:#38d9a9; color:white;">Start</button>
+  </div>
+
+  <div id="timeScore"></div>
+
+  <div class="target" id="targetNum"></div>
+
+  <div class="factors" id="factorButtons"></div>
+
+  <div class="inputFactors" id="inputFactors">(Selected factors will appear here)</div>
+
+  <div>
+    <button id="checkBtn" style="background-color:#228be6; color:white;">=</button>
+    <button id="undoBtn" style="background-color:#ccc;">Undo</button>
+  </div>
+
+  <div class="correct" id="correctMsg"></div>
+
+  <!-- 下広告 -->
+  <div class="adsense">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-4032369016517729"
+         data-ad-slot="5683767599"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+</div>
+
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+
+const MODES = {
+  normal: { factors: [2, 3, 5, 7], digits: [2, 3, 4] },
+  hard: { factors: [2, 3, 5, 7, 11, 13], digits: [3] },
+  expert: { factors: [2, 3, 5, 7, 11, 13, 17], digits: [4] }
+};
+
+const TIME_LIMITS = { normal: 90, hard: 90, expert: 90 };
+
+let mode = 'normal';
+let target = null;
+let previousTarget = null; // 直前の数字を記憶
+let inputFactors = [];
+let score = 0;
+let timeLeft = 0;
+let timer = null;
+
+const modeSelect = document.getElementById('modeSelect');
+const startBtn = document.getElementById('startBtn');
+const targetNum = document.getElementById('targetNum');
+const factorButtons = document.getElementById('factorButtons');
+const inputFactorsDiv = document.getElementById('inputFactors');
+const checkBtn = document.getElementById('checkBtn');
+const undoBtn = document.getElementById('undoBtn');
+const correctMsg = document.getElementById('correctMsg');
+const timeScoreDiv = document.getElementById('timeScore');
+
+modeSelect.addEventListener('change', () => { mode = modeSelect.value; });
+
+startBtn.addEventListener('click', () => {
+  score = 0;
+  timeLeft = TIME_LIMITS[mode];
+  updateTimeScore();
+  generateNumber();
+  setupFactorButtons();
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    timeLeft--;
+    updateTimeScore();
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      alert(`Time up! Score: ${score}`);
+    }
+  }, 1000);
+});
+
+function updateTimeScore() {
+  timeScoreDiv.innerHTML = `Time: ${timeLeft}s | Score: ${score} | Level: ${mode}`;
+}
+
+function generateNumber() {
+  const m = MODES[mode];
+  let d = (m.digits.length === 1) ? m.digits[0] : (Math.random() < 0.7 ? 2 : (Math.random() < 0.95 ? 3 : 4));
+  
+  let newTarget;
+  do {
+    newTarget = 1;
+    for (let i = 0; i < d; i++) {
+      const f = m.factors[Math.floor(Math.random() * m.factors.length)];
+      newTarget *= f;
+    }
+  } while (newTarget === previousTarget); // 前回と同じ数字なら再生成
+
+  target = newTarget;
+  previousTarget = target;
+
+  targetNum.textContent = target;
+  inputFactors = [];
+  updateInputFactors();
+  correctMsg.textContent = '';
+}
+
+function setupFactorButtons() {
+  factorButtons.innerHTML = '';
+  MODES[mode].factors.forEach(f => {
+    const btn = document.createElement('button');
+    btn.textContent = f;
+    btn.addEventListener('click', () => { inputFactors.push(f); updateInputFactors(); });
+    factorButtons.appendChild(btn);
+  });
+}
+
+function updateInputFactors() {
+  inputFactorsDiv.textContent = inputFactors.length === 0 ? '(Selected factors will appear here)' : inputFactors.join(' × ');
+}
+
+checkBtn.addEventListener('click', () => {
+  const product = inputFactors.reduce((a,b)=>a*b,1);
+  if (product === target) {
+    score++;
+    correctMsg.textContent = 'Correct!';
+    generateNumber();
+  } else {
+    correctMsg.textContent = 'Wrong!';
+    inputFactors=[];
+    updateInputFactors();
+  }
+  updateTimeScore();
+});
+
+undoBtn.addEventListener('click', () => { inputFactors.pop(); updateInputFactors(); });
+
+</script>
+</body>
+</html>
